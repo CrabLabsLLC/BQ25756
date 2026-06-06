@@ -61,7 +61,7 @@ static BQ25756Error bq25756WriteScaled(const BQ25756* const dev,
                                        const uint32_t             real_max,
                                        const uint32_t             lsb);
 static BQ25756ChargeState   bq25756DecodeChargeState(const uint8_t status1);
-static BQ25756JeitaRegion   bq25756DecodeJeitaRegion(const uint8_t ntc_status);
+static BQ25756JEITARegion   bq25756DecodeJeitaRegion(const uint8_t ntc_status);
 static BQ25756DominantFault bq25756DecodeDominantFault(const uint32_t mask);
 
 /* ── 1. Initialization / Lifecycle / Identity ─────────────────────────────── */
@@ -115,13 +115,13 @@ BQ25756Error bq25756ApplyConfig(BQ25756* const       dev,
 	if (err != BQ25756_ERROR_OK) return err;
 	err = bq25756SetInputCurrentMax(dev, config->input_current_max_ma);
 	if (err != BQ25756_ERROR_OK) return err;
-	err = bq25756SetVbusOvp(dev, config->vbus_ovp_mv);
+	err = bq25756SetVBUSOVP(dev, config->vbus_ovp_mv);
 	if (err != BQ25756_ERROR_OK) return err;
-	err = bq25756SetVbatOvp(dev, config->vbat_ovp_mv);
+	err = bq25756SetVBATOVP(dev, config->vbat_ovp_mv);
 	if (err != BQ25756_ERROR_OK) return err;
-	err = bq25756SetVsysMin(dev, config->vsys_min_mv);
+	err = bq25756SetVSYSMin(dev, config->vsys_min_mv);
 	if (err != BQ25756_ERROR_OK) return err;
-	err = bq25756SetVsysReg(dev, config->vsys_reg_mv);
+	err = bq25756SetVSYSReg(dev, config->vsys_reg_mv);
 	if (err != BQ25756_ERROR_OK) return err;
 	err = bq25756SetWatchdog(dev, config->watchdog);
 	if (err != BQ25756_ERROR_OK) return err;
@@ -129,7 +129,7 @@ BQ25756Error bq25756ApplyConfig(BQ25756* const       dev,
 	if (err != BQ25756_ERROR_OK) return err;
 	err = bq25756SetTerminationEnabled(dev, config->enable_termination);
 	if (err != BQ25756_ERROR_OK) return err;
-	err = bq25756SetNtcEnabled(dev, config->enable_ntc);
+	err = bq25756SetNTCEnabled(dev, config->enable_ntc);
 	if (err != BQ25756_ERROR_OK) return err;
 
 	/* ICO is on CHARGER_CTRL_1.EN_ICO — read-modify-write inline. */
@@ -265,7 +265,7 @@ BQ25756Error bq25756SetInputCurrentMax(const BQ25756* const dev,
 	                          BQ25756_IIN_DPM_LSB_MA);
 }
 
-BQ25756Error bq25756SetVbusOvp(const BQ25756* const dev,
+BQ25756Error bq25756SetVBUSOVP(const BQ25756* const dev,
                                const uint32_t             mv)
 {
 	const BQ25756Error ready = bq25756CheckReady(dev);
@@ -277,7 +277,7 @@ BQ25756Error bq25756SetVbusOvp(const BQ25756* const dev,
 	return bq25756WriteU16BE(dev, BQ25756_REG_VBUS_OVP_MSB, code);
 }
 
-BQ25756Error bq25756SetVbatOvp(const BQ25756* const dev,
+BQ25756Error bq25756SetVBATOVP(const BQ25756* const dev,
                                const uint32_t             mv)
 {
 	const BQ25756Error ready = bq25756CheckReady(dev);
@@ -289,7 +289,7 @@ BQ25756Error bq25756SetVbatOvp(const BQ25756* const dev,
 	return bq25756WriteU16BE(dev, BQ25756_REG_VBAT_OVP_MSB, code);
 }
 
-BQ25756Error bq25756SetVsysMin(const BQ25756* const dev,
+BQ25756Error bq25756SetVSYSMin(const BQ25756* const dev,
                                const uint32_t             mv)
 {
 	const BQ25756Error ready = bq25756CheckReady(dev);
@@ -301,7 +301,7 @@ BQ25756Error bq25756SetVsysMin(const BQ25756* const dev,
 	return bq25756WriteU16BE(dev, BQ25756_REG_VSYS_MIN_MSB, code);
 }
 
-BQ25756Error bq25756SetVsysReg(const BQ25756* const dev,
+BQ25756Error bq25756SetVSYSReg(const BQ25756* const dev,
                                const uint32_t             mv)
 {
 	const BQ25756Error ready = bq25756CheckReady(dev);
@@ -323,7 +323,7 @@ BQ25756Error bq25756SetHiZ(const BQ25756* const dev,
 	                         enable ? BQ25756_CTRL1_EN_HIZ_BIT : 0U);
 }
 
-BQ25756Error bq25756SetOtgEnabled(const BQ25756* const dev,
+BQ25756Error bq25756SetOTGEnabled(const BQ25756* const dev,
                                   const bool                 enable)
 {
 	return bq25756ModifyByte(dev, BQ25756_REG_CHARGER_CTRL_1,
@@ -331,7 +331,7 @@ BQ25756Error bq25756SetOtgEnabled(const BQ25756* const dev,
 	                         enable ? BQ25756_CTRL1_EN_OTG_BIT : 0U);
 }
 
-BQ25756Error bq25756SetOtgVoltage(const BQ25756* const dev,
+BQ25756Error bq25756SetOTGVoltage(const BQ25756* const dev,
                                   const uint32_t             mv)
 {
 	const BQ25756Error ready = bq25756CheckReady(dev);
@@ -343,7 +343,7 @@ BQ25756Error bq25756SetOtgVoltage(const BQ25756* const dev,
 	return bq25756WriteU16BE(dev, BQ25756_REG_VOTG_REG_MSB, code);
 }
 
-BQ25756Error bq25756SetOtgCurrent(const BQ25756* const dev,
+BQ25756Error bq25756SetOTGCurrent(const BQ25756* const dev,
                                   const uint32_t             ma)
 {
 	const BQ25756Error ready = bq25756CheckReady(dev);
@@ -487,7 +487,7 @@ BQ25756Error bq25756ClearFaultFlags(const BQ25756* const dev)
 
 /* ── 7. ADC ───────────────────────────────────────────────────────────────── */
 
-BQ25756Error bq25756SetAdcEnabled(const BQ25756* const dev,
+BQ25756Error bq25756SetADCEnabled(const BQ25756* const dev,
                                   const bool                 enable)
 {
 	return bq25756ModifyByte(dev, BQ25756_REG_ADC_CTRL,
@@ -495,16 +495,16 @@ BQ25756Error bq25756SetAdcEnabled(const BQ25756* const dev,
 	                         enable ? BQ25756_ADC_CTRL_EN_BIT : 0U);
 }
 
-BQ25756Error bq25756SetAdcMode(const BQ25756* const dev,
-                               const BQ25756AdcMode       mode)
+BQ25756Error bq25756SetADCMode(const BQ25756* const dev,
+                               const BQ25756ADCMode       mode)
 {
 	return bq25756ModifyByte(dev, BQ25756_REG_ADC_CTRL,
 	                         BQ25756_ADC_CTRL_RATE_BIT,
 	                         (mode == BQ25756_ADC_MODE_ONE_SHOT) ? BQ25756_ADC_CTRL_RATE_BIT : 0U);
 }
 
-BQ25756Error bq25756SetAdcResolution(BQ25756* const       dev,
-                                     const BQ25756AdcResolution res)
+BQ25756Error bq25756SetADCResolution(BQ25756* const       dev,
+                                     const BQ25756ADCResolution res)
 {
 	const BQ25756Error ready = bq25756CheckReady(dev);
 	if (ready != BQ25756_ERROR_OK)
@@ -522,7 +522,7 @@ BQ25756Error bq25756SetAdcResolution(BQ25756* const       dev,
 	return BQ25756_ERROR_OK;
 }
 
-BQ25756Error bq25756TriggerAdcOneShot(const BQ25756* const dev,
+BQ25756Error bq25756TriggerADCOneShot(const BQ25756* const dev,
                                       const uint32_t             timeout_ms)
 {
 	const BQ25756Error ready = bq25756CheckReady(dev);
@@ -543,8 +543,8 @@ BQ25756Error bq25756TriggerAdcOneShot(const BQ25756* const dev,
 	return BQ25756_ERROR_OK;
 }
 
-BQ25756Error bq25756ReadAdc(const BQ25756* const dev,
-                            const BQ25756AdcChannel    channel,
+BQ25756Error bq25756ReadADC(const BQ25756* const dev,
+                            const BQ25756ADCChannel    channel,
                             int32_t* const             out_value)
 {
 	if (out_value == NULL)
@@ -606,7 +606,7 @@ BQ25756Error bq25756ReadAdc(const BQ25756* const dev,
 
 /* ── 8. JEITA / NTC ───────────────────────────────────────────────────────── */
 
-BQ25756Error bq25756SetNtcEnabled(const BQ25756* const dev,
+BQ25756Error bq25756SetNTCEnabled(const BQ25756* const dev,
                                   const bool                 enable)
 {
 	return bq25756ModifyByte(dev, BQ25756_REG_NTC_CTRL_0,
@@ -614,8 +614,8 @@ BQ25756Error bq25756SetNtcEnabled(const BQ25756* const dev,
 	                         enable ? BQ25756_NTC0_EN_BIT : 0U);
 }
 
-BQ25756Error bq25756SetJeitaCoolAction(const BQ25756* const dev,
-                                       const BQ25756JeitaVcool    action)
+BQ25756Error bq25756SetJEITACoolAction(const BQ25756* const dev,
+                                       const BQ25756JEITAVCool    action)
 {
 	if ((uint32_t)action > (uint32_t)BQ25756_JEITA_VCOOL_SUSPENDED)
 		return BQ25756_ERROR_INVALID_PARAM;
@@ -624,8 +624,8 @@ BQ25756Error bq25756SetJeitaCoolAction(const BQ25756* const dev,
 	                         (uint8_t)((uint8_t)action << BQ25756_NTC0_JEITA_VSET_SHIFT));
 }
 
-BQ25756Error bq25756SetJeitaWarmAction(const BQ25756* const dev,
-                                       const BQ25756JeitaIwarm    action)
+BQ25756Error bq25756SetJEITAWarmAction(const BQ25756* const dev,
+                                       const BQ25756JEITAIWarm    action)
 {
 	if ((uint32_t)action > (uint32_t)BQ25756_JEITA_IWARM_SUSPENDED)
 		return BQ25756_ERROR_INVALID_PARAM;
@@ -804,7 +804,7 @@ static BQ25756ChargeState bq25756DecodeChargeState(const uint8_t status1)
 	}
 }
 
-static BQ25756JeitaRegion bq25756DecodeJeitaRegion(const uint8_t ntc_status)
+static BQ25756JEITARegion bq25756DecodeJeitaRegion(const uint8_t ntc_status)
 {
 	/* BENCH-VERIFY decode: assume the chip encodes the region in NTC_STATUS[2:0]
 	 * with 0=normal, 1=cool, 2=warm, 3=cold, 4=hot. */

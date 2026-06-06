@@ -170,13 +170,13 @@ BQ25756Error bq25756SetInputCurrentMax(const BQ25756* const dev,
 /**
  * @brief Set the VBUS over-voltage shutdown threshold (mV).
  */
-BQ25756Error bq25756SetVbusOvp(const BQ25756* const dev,
+BQ25756Error bq25756SetVBUSOVP(const BQ25756* const dev,
                                const uint32_t             mv);
 
 /**
  * @brief Set the VBAT over-voltage shutdown threshold (mV).
  */
-BQ25756Error bq25756SetVbatOvp(const BQ25756* const dev,
+BQ25756Error bq25756SetVBATOVP(const BQ25756* const dev,
                                const uint32_t             mv);
 
 /**
@@ -185,14 +185,14 @@ BQ25756Error bq25756SetVbatOvp(const BQ25756* const dev,
  * Below this the charger will pull from the input even if the battery is
  * deeply discharged, keeping the system rail alive.
  */
-BQ25756Error bq25756SetVsysMin(const BQ25756* const dev,
+BQ25756Error bq25756SetVSYSMin(const BQ25756* const dev,
                                const uint32_t             mv);
 
 /**
  * @brief Set the system voltage regulation target (mV). Used when the
  *        charger drives the system rail directly.
  */
-BQ25756Error bq25756SetVsysReg(const BQ25756* const dev,
+BQ25756Error bq25756SetVSYSReg(const BQ25756* const dev,
                                const uint32_t             mv);
 
 /* ── 4. Power-path control ────────────────────────────────────────────────── */
@@ -207,19 +207,19 @@ BQ25756Error bq25756SetHiZ(const BQ25756* const dev,
  * @brief Enable / disable OTG (reverse-boost) mode. Programme the OTG
  *        voltage and current limit *before* asserting this.
  */
-BQ25756Error bq25756SetOtgEnabled(const BQ25756* const dev,
+BQ25756Error bq25756SetOTGEnabled(const BQ25756* const dev,
                                   const bool                 enable);
 
 /**
  * @brief Set the OTG output regulation voltage (mV).
  */
-BQ25756Error bq25756SetOtgVoltage(const BQ25756* const dev,
+BQ25756Error bq25756SetOTGVoltage(const BQ25756* const dev,
                                   const uint32_t             mv);
 
 /**
  * @brief Set the OTG output current limit (mA).
  */
-BQ25756Error bq25756SetOtgCurrent(const BQ25756* const dev,
+BQ25756Error bq25756SetOTGCurrent(const BQ25756* const dev,
                                   const uint32_t             ma);
 
 /**
@@ -275,26 +275,26 @@ BQ25756Error bq25756ClearFaultFlags(const BQ25756* const dev);
 /**
  * @brief Enable / disable the integrated ADC.
  */
-BQ25756Error bq25756SetAdcEnabled(const BQ25756* const dev,
+BQ25756Error bq25756SetADCEnabled(const BQ25756* const dev,
                                   const bool                 enable);
 
 /**
  * @brief Pick continuous vs. one-shot conversion mode.
  */
-BQ25756Error bq25756SetAdcMode(const BQ25756* const dev,
-                               const BQ25756AdcMode       mode);
+BQ25756Error bq25756SetADCMode(const BQ25756* const dev,
+                               const BQ25756ADCMode       mode);
 
 /**
  * @brief Set ADC resolution (15/14/13/12 bits). Lower resolution = faster.
  */
-BQ25756Error bq25756SetAdcResolution(BQ25756* const       dev,
-                                     const BQ25756AdcResolution res);
+BQ25756Error bq25756SetADCResolution(BQ25756* const       dev,
+                                     const BQ25756ADCResolution res);
 
 /**
  * @brief Trigger a single ADC conversion (one-shot mode only) and block
  *        @p timeout_ms while it completes.
  */
-BQ25756Error bq25756TriggerAdcOneShot(const BQ25756* const dev,
+BQ25756Error bq25756TriggerADCOneShot(const BQ25756* const dev,
                                       const uint32_t             timeout_ms);
 
 /**
@@ -306,8 +306,8 @@ BQ25756Error bq25756TriggerAdcOneShot(const BQ25756* const dev,
  *   TS               → milli-percent of REGN (0 = 0 %, 100000 = 100 %).
  *   TDIE             → milli-degrees Celsius.
  */
-BQ25756Error bq25756ReadAdc(const BQ25756* const dev,
-                            const BQ25756AdcChannel    channel,
+BQ25756Error bq25756ReadADC(const BQ25756* const dev,
+                            const BQ25756ADCChannel    channel,
                             int32_t* const             out_value);
 
 /* ── 8. JEITA / NTC control ───────────────────────────────────────────────── */
@@ -315,20 +315,20 @@ BQ25756Error bq25756ReadAdc(const BQ25756* const dev,
 /**
  * @brief Enable / disable NTC monitoring and JEITA-region behaviour.
  */
-BQ25756Error bq25756SetNtcEnabled(const BQ25756* const dev,
+BQ25756Error bq25756SetNTCEnabled(const BQ25756* const dev,
                                   const bool                 enable);
 
 /**
  * @brief Programme the JEITA cool-region voltage de-rating action.
  */
-BQ25756Error bq25756SetJeitaCoolAction(const BQ25756* const dev,
-                                       const BQ25756JeitaVcool    action);
+BQ25756Error bq25756SetJEITACoolAction(const BQ25756* const dev,
+                                       const BQ25756JEITAVCool    action);
 
 /**
  * @brief Programme the JEITA warm-region current de-rating action.
  */
-BQ25756Error bq25756SetJeitaWarmAction(const BQ25756* const dev,
-                                       const BQ25756JeitaIwarm    action);
+BQ25756Error bq25756SetJEITAWarmAction(const BQ25756* const dev,
+                                       const BQ25756JEITAIWarm    action);
 
 /* ── 9. Interrupt-mask programming ────────────────────────────────────────── */
 

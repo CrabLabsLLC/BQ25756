@@ -99,7 +99,7 @@ typedef enum
 	BQ25756_ADC_CHANNEL_TS,        ///< NTC ratio, milli-percent of REGN
 	BQ25756_ADC_CHANNEL_TDIE,      ///< Die temperature, milli-degrees Celsius
 	BQ25756_ADC_CHANNEL_COUNT,
-} BQ25756AdcChannel;
+} BQ25756ADCChannel;
 
 /* ── ADC conversion mode ──────────────────────────────────────────────────── */
 
@@ -107,7 +107,7 @@ typedef enum
 {
 	BQ25756_ADC_MODE_CONTINUOUS = 0, ///< Free-running, host reads latest
 	BQ25756_ADC_MODE_ONE_SHOT   = 1, ///< One conversion per write
-} BQ25756AdcMode;
+} BQ25756ADCMode;
 
 /* ── ADC resolution ───────────────────────────────────────────────────────── */
 
@@ -117,7 +117,7 @@ typedef enum
 	BQ25756_ADC_RES_14_BIT = 0x1U,
 	BQ25756_ADC_RES_13_BIT = 0x2U,
 	BQ25756_ADC_RES_12_BIT = 0x3U,
-} BQ25756AdcResolution;
+} BQ25756ADCResolution;
 
 /* ── Watchdog period (TIMER_CTRL[1:0]) ────────────────────────────────────── */
 
@@ -148,7 +148,7 @@ typedef enum
 	BQ25756_JEITA_WARM,         ///< Warm: reduce charge current
 	BQ25756_JEITA_COLD,         ///< Cold: charging suspended
 	BQ25756_JEITA_HOT,          ///< Hot: charging suspended
-} BQ25756JeitaRegion;
+} BQ25756JEITARegion;
 
 /* ── JEITA cool-region voltage de-rating ──────────────────────────────────── */
 
@@ -158,7 +158,7 @@ typedef enum
 	BQ25756_JEITA_VCOOL_MINUS_100  = 0x1U, ///< -100 mV
 	BQ25756_JEITA_VCOOL_MINUS_200  = 0x2U,
 	BQ25756_JEITA_VCOOL_SUSPENDED  = 0x3U,
-} BQ25756JeitaVcool;
+} BQ25756JEITAVCool;
 
 /* ── JEITA warm-region current de-rating ──────────────────────────────────── */
 
@@ -168,7 +168,7 @@ typedef enum
 	BQ25756_JEITA_IWARM_HALF       = 0x1U, ///< 50 %
 	BQ25756_JEITA_IWARM_QUARTER    = 0x2U, ///< 25 %
 	BQ25756_JEITA_IWARM_SUSPENDED  = 0x3U,
-} BQ25756JeitaIwarm;
+} BQ25756JEITAIWarm;
 
 /* ── Top-level charger status snapshot ────────────────────────────────────── */
 
@@ -183,7 +183,7 @@ typedef struct
 	bool                 input_i_regulating; ///< IINDPM clamping
 	bool                 vsys_regulating;   ///< VSYS minimum regulating
 	bool                 thermal_regulating;///< TJ regulation active
-	BQ25756JeitaRegion   jeita_region;
+	BQ25756JEITARegion   jeita_region;
 } BQ25756Status;
 
 /* ── Fault snapshot ───────────────────────────────────────────────────────── */
@@ -258,7 +258,7 @@ typedef struct
 	BQ25756HAL          hal;
 	uint8_t             i2c_addr;
 	uint8_t             part_info;        ///< Latched at init for debug
-	BQ25756AdcResolution adc_resolution;  ///< Cached for raw → unit conversion
+	BQ25756ADCResolution adc_resolution;  ///< Cached for raw → unit conversion
 	bool                is_initialized;
 } BQ25756;
 
