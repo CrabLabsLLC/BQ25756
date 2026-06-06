@@ -260,7 +260,7 @@ typedef struct
 	uint8_t             part_info;        ///< Latched at init for debug
 	BQ25756AdcResolution adc_resolution;  ///< Cached for raw → unit conversion
 	bool                is_initialized;
-} BQ25756Device;
+} BQ25756;
 
 #ifdef __cplusplus
 }

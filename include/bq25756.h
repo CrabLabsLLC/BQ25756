@@ -15,7 +15,7 @@
  * HAL, bit-banger, etc.). The driver never touches GPIO directly.
  *
  * **Thread safety:** the driver is *not* thread-safe. Callers must serialise
- * access to a given ::BQ25756Device handle.
+ * access to a given ::BQ25756 handle.
  *
  * API layering:
  *   1. Initialization / Lifecycle / Identity
@@ -68,7 +68,7 @@ extern "C" {
  *         NULL args; ::BQ25756_ERROR_COMM_FAIL on bus failure;
  *         ::BQ25756_ERROR_BAD_ID if the part nibble doesn't match.
  */
-BQ25756Error bq25756Init(BQ25756Device* const    dev,
+BQ25756Error bq25756Init(BQ25756* const    dev,
                          const BQ25756HAL* const hal,
                          const uint8_t           i2c_addr);
 
@@ -79,21 +79,21 @@ BQ25756Error bq25756Init(BQ25756Device* const    dev,
  * on the first non-OK code, leaving the chip half-configured — callers that
  * need atomic apply must keep their own rollback.
  */
-BQ25756Error bq25756ApplyConfig(BQ25756Device* const dev,
+BQ25756Error bq25756ApplyConfig(BQ25756* const dev,
                                 const BQ25756Config* const config);
 
 /**
  * @brief Issue a soft-reset (writes CHARGER_CTRL_3.RESET_REG). Self-clearing.
  *        Returns once the bit reads back as 0 (or ::BQ25756_ERROR_TIMEOUT).
  */
-BQ25756Error bq25756Reset(BQ25756Device* const dev);
+BQ25756Error bq25756Reset(BQ25756* const dev);
 
 /**
  * @brief Read the cached PART_INFO byte captured at init.
  *
  * @param[out] part_info Filled in by the call; bits per datasheet.
  */
-BQ25756Error bq25756GetPartInfo(const BQ25756Device* const dev,
+BQ25756Error bq25756GetPartInfo(const BQ25756* const dev,
                                 uint8_t* const             part_info);
 
 /* ── 2. Charger configuration ─────────────────────────────────────────────── */
@@ -104,7 +104,7 @@ BQ25756Error bq25756GetPartInfo(const BQ25756Device* const dev,
  * @p mv is rounded down to the nearest ::BQ25756_VAC_CHG_LSB_MV. Out-of-range
  * values return ::BQ25756_ERROR_INVALID_PARAM.
  */
-BQ25756Error bq25756SetChargeVoltage(const BQ25756Device* const dev,
+BQ25756Error bq25756SetChargeVoltage(const BQ25756* const dev,
                                      const uint32_t             mv);
 
 /**
@@ -113,13 +113,13 @@ BQ25756Error bq25756SetChargeVoltage(const BQ25756Device* const dev,
  * Rounds to ::BQ25756_ICHG_LSB_MA. Range-checked against
  * ::BQ25756_ICHG_MIN_MA / ::BQ25756_ICHG_MAX_MA.
  */
-BQ25756Error bq25756SetChargeCurrent(const BQ25756Device* const dev,
+BQ25756Error bq25756SetChargeCurrent(const BQ25756* const dev,
                                      const uint32_t             ma);
 
 /**
  * @brief Set the pre-charge constant current (mA). Rounds to LSB.
  */
-BQ25756Error bq25756SetPrechargeCurrent(const BQ25756Device* const dev,
+BQ25756Error bq25756SetPrechargeCurrent(const BQ25756* const dev,
                                         const uint32_t             ma);
 
 /**
@@ -128,13 +128,13 @@ BQ25756Error bq25756SetPrechargeCurrent(const BQ25756Device* const dev,
  * Charge-complete is declared when |IBAT| falls below this threshold while
  * still in the CV phase.
  */
-BQ25756Error bq25756SetTerminationCurrent(const BQ25756Device* const dev,
+BQ25756Error bq25756SetTerminationCurrent(const BQ25756* const dev,
                                           const uint32_t             ma);
 
 /**
  * @brief Set the pre-charge to fast-charge transition voltage (mV).
  */
-BQ25756Error bq25756SetPrechargeVoltage(const BQ25756Device* const dev,
+BQ25756Error bq25756SetPrechargeVoltage(const BQ25756* const dev,
                                         const uint32_t             mv);
 
 /**
@@ -142,13 +142,13 @@ BQ25756Error bq25756SetPrechargeVoltage(const BQ25756Device* const dev,
  *
  * Read-modify-write on CHARGER_CTRL_1.EN_CHG. Does *not* clear faults.
  */
-BQ25756Error bq25756SetChargeEnabled(const BQ25756Device* const dev,
+BQ25756Error bq25756SetChargeEnabled(const BQ25756* const dev,
                                      const bool                 enable);
 
 /**
  * @brief Enable / disable charge-current termination detection.
  */
-BQ25756Error bq25756SetTerminationEnabled(const BQ25756Device* const dev,
+BQ25756Error bq25756SetTerminationEnabled(const BQ25756* const dev,
                                           const bool                 enable);
 
 /* ── 3. Input / system configuration ──────────────────────────────────────── */
@@ -158,25 +158,25 @@ BQ25756Error bq25756SetTerminationEnabled(const BQ25756Device* const dev,
  *
  * Below this threshold the chip will reduce ICHG to keep VBUS from sagging.
  */
-BQ25756Error bq25756SetInputVoltageMin(const BQ25756Device* const dev,
+BQ25756Error bq25756SetInputVoltageMin(const BQ25756* const dev,
                                        const uint32_t             mv);
 
 /**
  * @brief Set the input-current limit (IINDPM) in mA.
  */
-BQ25756Error bq25756SetInputCurrentMax(const BQ25756Device* const dev,
+BQ25756Error bq25756SetInputCurrentMax(const BQ25756* const dev,
                                        const uint32_t             ma);
 
 /**
  * @brief Set the VBUS over-voltage shutdown threshold (mV).
  */
-BQ25756Error bq25756SetVbusOvp(const BQ25756Device* const dev,
+BQ25756Error bq25756SetVbusOvp(const BQ25756* const dev,
                                const uint32_t             mv);
 
 /**
  * @brief Set the VBAT over-voltage shutdown threshold (mV).
  */
-BQ25756Error bq25756SetVbatOvp(const BQ25756Device* const dev,
+BQ25756Error bq25756SetVbatOvp(const BQ25756* const dev,
                                const uint32_t             mv);
 
 /**
@@ -185,14 +185,14 @@ BQ25756Error bq25756SetVbatOvp(const BQ25756Device* const dev,
  * Below this the charger will pull from the input even if the battery is
  * deeply discharged, keeping the system rail alive.
  */
-BQ25756Error bq25756SetVsysMin(const BQ25756Device* const dev,
+BQ25756Error bq25756SetVsysMin(const BQ25756* const dev,
                                const uint32_t             mv);
 
 /**
  * @brief Set the system voltage regulation target (mV). Used when the
  *        charger drives the system rail directly.
  */
-BQ25756Error bq25756SetVsysReg(const BQ25756Device* const dev,
+BQ25756Error bq25756SetVsysReg(const BQ25756* const dev,
                                const uint32_t             mv);
 
 /* ── 4. Power-path control ────────────────────────────────────────────────── */
@@ -200,33 +200,33 @@ BQ25756Error bq25756SetVsysReg(const BQ25756Device* const dev,
 /**
  * @brief Place the input in high-impedance (BFET-only, no input current).
  */
-BQ25756Error bq25756SetHiZ(const BQ25756Device* const dev,
+BQ25756Error bq25756SetHiZ(const BQ25756* const dev,
                            const bool                 enable);
 
 /**
  * @brief Enable / disable OTG (reverse-boost) mode. Programme the OTG
  *        voltage and current limit *before* asserting this.
  */
-BQ25756Error bq25756SetOtgEnabled(const BQ25756Device* const dev,
+BQ25756Error bq25756SetOtgEnabled(const BQ25756* const dev,
                                   const bool                 enable);
 
 /**
  * @brief Set the OTG output regulation voltage (mV).
  */
-BQ25756Error bq25756SetOtgVoltage(const BQ25756Device* const dev,
+BQ25756Error bq25756SetOtgVoltage(const BQ25756* const dev,
                                   const uint32_t             mv);
 
 /**
  * @brief Set the OTG output current limit (mA).
  */
-BQ25756Error bq25756SetOtgCurrent(const BQ25756Device* const dev,
+BQ25756Error bq25756SetOtgCurrent(const BQ25756* const dev,
                                   const uint32_t             ma);
 
 /**
  * @brief Enter ship mode. Disconnects the battery FET; the chip will only
  *        wake on a /CE pin event or VBUS attach.
  */
-BQ25756Error bq25756EnterShipMode(const BQ25756Device* const dev);
+BQ25756Error bq25756EnterShipMode(const BQ25756* const dev);
 
 /* ── 5. Safety: watchdog & timers ─────────────────────────────────────────── */
 
@@ -235,18 +235,18 @@ BQ25756Error bq25756EnterShipMode(const BQ25756Device* const dev);
  *        must call ::bq25756KickWatchdog within @p period or the chip will
  *        reset its configuration to defaults.
  */
-BQ25756Error bq25756SetWatchdog(const BQ25756Device* const  dev,
+BQ25756Error bq25756SetWatchdog(const BQ25756* const  dev,
                                 const BQ25756WatchdogPeriod period);
 
 /** @brief Pet the watchdog (writes TIMER_CTRL.WD_RESET, self-clearing). */
-BQ25756Error bq25756KickWatchdog(const BQ25756Device* const dev);
+BQ25756Error bq25756KickWatchdog(const BQ25756* const dev);
 
 /** @brief Enable / disable the charge-safety timer. */
-BQ25756Error bq25756SetSafetyTimerEnabled(const BQ25756Device* const dev,
+BQ25756Error bq25756SetSafetyTimerEnabled(const BQ25756* const dev,
                                           const bool                 enable);
 
 /** @brief Programme the safety-timer period. */
-BQ25756Error bq25756SetSafetyTimer(const BQ25756Device* const dev,
+BQ25756Error bq25756SetSafetyTimer(const BQ25756* const dev,
                                    const BQ25756SafetyTimer   period);
 
 /* ── 6. Status / fault decode ─────────────────────────────────────────────── */
@@ -254,47 +254,47 @@ BQ25756Error bq25756SetSafetyTimer(const BQ25756Device* const dev,
 /**
  * @brief Read CHARGER_STATUS_1..3 + NTC_STATUS into a decoded snapshot.
  */
-BQ25756Error bq25756GetStatus(const BQ25756Device* const dev,
+BQ25756Error bq25756GetStatus(const BQ25756* const dev,
                               BQ25756Status* const       out);
 
 /**
  * @brief Read FAULT_STATUS_1 / _2 and decode into an OR-mask plus a
  *        dominant-fault category for UI.
  */
-BQ25756Error bq25756GetFaults(const BQ25756Device* const dev,
+BQ25756Error bq25756GetFaults(const BQ25756* const dev,
                               BQ25756Faults* const       out);
 
 /**
  * @brief Clear latched fault flags by writing 1s back to the FAULT_FLAG
  *        registers. Does not affect the live FAULT_STATUS bits.
  */
-BQ25756Error bq25756ClearFaultFlags(const BQ25756Device* const dev);
+BQ25756Error bq25756ClearFaultFlags(const BQ25756* const dev);
 
 /* ── 7. ADC control + telemetry ───────────────────────────────────────────── */
 
 /**
  * @brief Enable / disable the integrated ADC.
  */
-BQ25756Error bq25756SetAdcEnabled(const BQ25756Device* const dev,
+BQ25756Error bq25756SetAdcEnabled(const BQ25756* const dev,
                                   const bool                 enable);
 
 /**
  * @brief Pick continuous vs. one-shot conversion mode.
  */
-BQ25756Error bq25756SetAdcMode(const BQ25756Device* const dev,
+BQ25756Error bq25756SetAdcMode(const BQ25756* const dev,
                                const BQ25756AdcMode       mode);
 
 /**
  * @brief Set ADC resolution (15/14/13/12 bits). Lower resolution = faster.
  */
-BQ25756Error bq25756SetAdcResolution(BQ25756Device* const       dev,
+BQ25756Error bq25756SetAdcResolution(BQ25756* const       dev,
                                      const BQ25756AdcResolution res);
 
 /**
  * @brief Trigger a single ADC conversion (one-shot mode only) and block
  *        @p timeout_ms while it completes.
  */
-BQ25756Error bq25756TriggerAdcOneShot(const BQ25756Device* const dev,
+BQ25756Error bq25756TriggerAdcOneShot(const BQ25756* const dev,
                                       const uint32_t             timeout_ms);
 
 /**
@@ -306,7 +306,7 @@ BQ25756Error bq25756TriggerAdcOneShot(const BQ25756Device* const dev,
  *   TS               → milli-percent of REGN (0 = 0 %, 100000 = 100 %).
  *   TDIE             → milli-degrees Celsius.
  */
-BQ25756Error bq25756ReadAdc(const BQ25756Device* const dev,
+BQ25756Error bq25756ReadAdc(const BQ25756* const dev,
                             const BQ25756AdcChannel    channel,
                             int32_t* const             out_value);
 
@@ -315,19 +315,19 @@ BQ25756Error bq25756ReadAdc(const BQ25756Device* const dev,
 /**
  * @brief Enable / disable NTC monitoring and JEITA-region behaviour.
  */
-BQ25756Error bq25756SetNtcEnabled(const BQ25756Device* const dev,
+BQ25756Error bq25756SetNtcEnabled(const BQ25756* const dev,
                                   const bool                 enable);
 
 /**
  * @brief Programme the JEITA cool-region voltage de-rating action.
  */
-BQ25756Error bq25756SetJeitaCoolAction(const BQ25756Device* const dev,
+BQ25756Error bq25756SetJeitaCoolAction(const BQ25756* const dev,
                                        const BQ25756JeitaVcool    action);
 
 /**
  * @brief Programme the JEITA warm-region current de-rating action.
  */
-BQ25756Error bq25756SetJeitaWarmAction(const BQ25756Device* const dev,
+BQ25756Error bq25756SetJeitaWarmAction(const BQ25756* const dev,
                                        const BQ25756JeitaIwarm    action);
 
 /* ── 9. Interrupt-mask programming ────────────────────────────────────────── */
@@ -337,13 +337,13 @@ BQ25756Error bq25756SetJeitaWarmAction(const BQ25756Device* const dev,
  *        registers). Call this immediately after init if the host doesn't
  *        wire the /INT pin yet.
  */
-BQ25756Error bq25756MaskAllInterrupts(const BQ25756Device* const dev);
+BQ25756Error bq25756MaskAllInterrupts(const BQ25756* const dev);
 
 /**
  * @brief Per-fault unmask. @p fault_bits is an OR of ::BQ25756FaultBits
  *        values; bits set will be *unmasked* (i.e. allowed to assert /INT).
  */
-BQ25756Error bq25756SetFaultMask(const BQ25756Device* const dev,
+BQ25756Error bq25756SetFaultMask(const BQ25756* const dev,
                                  const uint32_t             fault_bits);
 
 #ifdef __cplusplus

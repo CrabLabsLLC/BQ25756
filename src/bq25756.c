@@ -29,32 +29,32 @@ static const int32_t  bq25756_adc_ts_full_scale_mpct  = 100000;  /* 100.000 % */
 
 /* ── Forward declarations ─────────────────────────────────────────────────── */
 
-static BQ25756Error bq25756ReadRegisters(const BQ25756Device* const dev,
+static BQ25756Error bq25756ReadRegisters(const BQ25756* const dev,
                                          const uint8_t              reg,
                                          uint8_t* const             data,
                                          const uint8_t              length);
-static BQ25756Error bq25756WriteRegisters(const BQ25756Device* const dev,
+static BQ25756Error bq25756WriteRegisters(const BQ25756* const dev,
                                           const uint8_t              reg,
                                           const uint8_t* const       data,
                                           const uint8_t              length);
-static BQ25756Error bq25756ReadByte(const BQ25756Device* const dev,
+static BQ25756Error bq25756ReadByte(const BQ25756* const dev,
                                     const uint8_t              reg,
                                     uint8_t* const             value);
-static BQ25756Error bq25756WriteByte(const BQ25756Device* const dev,
+static BQ25756Error bq25756WriteByte(const BQ25756* const dev,
                                      const uint8_t              reg,
                                      const uint8_t              value);
-static BQ25756Error bq25756ModifyByte(const BQ25756Device* const dev,
+static BQ25756Error bq25756ModifyByte(const BQ25756* const dev,
                                       const uint8_t              reg,
                                       const uint8_t              mask,
                                       const uint8_t              value);
-static BQ25756Error bq25756WriteU16BE(const BQ25756Device* const dev,
+static BQ25756Error bq25756WriteU16BE(const BQ25756* const dev,
                                       const uint8_t              msb_reg,
                                       const uint16_t             value);
-static BQ25756Error bq25756ReadU16BE(const BQ25756Device* const dev,
+static BQ25756Error bq25756ReadU16BE(const BQ25756* const dev,
                                      const uint8_t              msb_reg,
                                      uint16_t* const            value);
-static BQ25756Error bq25756CheckReady(const BQ25756Device* const dev);
-static BQ25756Error bq25756WriteScaled(const BQ25756Device* const dev,
+static BQ25756Error bq25756CheckReady(const BQ25756* const dev);
+static BQ25756Error bq25756WriteScaled(const BQ25756* const dev,
                                        const uint8_t              msb_reg,
                                        const uint32_t             real_value,
                                        const uint32_t             real_min,
@@ -66,7 +66,7 @@ static BQ25756DominantFault bq25756DecodeDominantFault(const uint32_t mask);
 
 /* ── 1. Initialization / Lifecycle / Identity ─────────────────────────────── */
 
-BQ25756Error bq25756Init(BQ25756Device* const    dev,
+BQ25756Error bq25756Init(BQ25756* const    dev,
                          const BQ25756HAL* const hal,
                          const uint8_t           i2c_addr)
 {
@@ -92,7 +92,7 @@ BQ25756Error bq25756Init(BQ25756Device* const    dev,
 	return BQ25756_ERROR_OK;
 }
 
-BQ25756Error bq25756ApplyConfig(BQ25756Device* const       dev,
+BQ25756Error bq25756ApplyConfig(BQ25756* const       dev,
                                 const BQ25756Config* const config)
 {
 	if (dev == NULL || config == NULL)
@@ -138,7 +138,7 @@ BQ25756Error bq25756ApplyConfig(BQ25756Device* const       dev,
 	                         config->enable_ico ? BQ25756_CTRL1_EN_ICO_BIT : 0U);
 }
 
-BQ25756Error bq25756Reset(BQ25756Device* const dev)
+BQ25756Error bq25756Reset(BQ25756* const dev)
 {
 	const BQ25756Error ready = bq25756CheckReady(dev);
 	if (ready != BQ25756_ERROR_OK)
@@ -165,7 +165,7 @@ BQ25756Error bq25756Reset(BQ25756Device* const dev)
 	return BQ25756_ERROR_TIMEOUT;
 }
 
-BQ25756Error bq25756GetPartInfo(const BQ25756Device* const dev,
+BQ25756Error bq25756GetPartInfo(const BQ25756* const dev,
                                 uint8_t* const             part_info)
 {
 	if (dev == NULL || part_info == NULL)
@@ -179,7 +179,7 @@ BQ25756Error bq25756GetPartInfo(const BQ25756Device* const dev,
 
 /* ── 2. Charger configuration ─────────────────────────────────────────────── */
 
-BQ25756Error bq25756SetChargeVoltage(const BQ25756Device* const dev,
+BQ25756Error bq25756SetChargeVoltage(const BQ25756* const dev,
                                      const uint32_t             mv)
 {
 	return bq25756WriteScaled(dev, BQ25756_REG_VAC_CHG_LIMIT_MSB, mv,
@@ -187,7 +187,7 @@ BQ25756Error bq25756SetChargeVoltage(const BQ25756Device* const dev,
 	                          BQ25756_VAC_CHG_LSB_MV);
 }
 
-BQ25756Error bq25756SetChargeCurrent(const BQ25756Device* const dev,
+BQ25756Error bq25756SetChargeCurrent(const BQ25756* const dev,
                                      const uint32_t             ma)
 {
 	return bq25756WriteScaled(dev, BQ25756_REG_ICHG_LIMIT_MSB, ma,
@@ -195,7 +195,7 @@ BQ25756Error bq25756SetChargeCurrent(const BQ25756Device* const dev,
 	                          BQ25756_ICHG_LSB_MA);
 }
 
-BQ25756Error bq25756SetPrechargeCurrent(const BQ25756Device* const dev,
+BQ25756Error bq25756SetPrechargeCurrent(const BQ25756* const dev,
                                         const uint32_t             ma)
 {
 	const BQ25756Error ready = bq25756CheckReady(dev);
@@ -207,7 +207,7 @@ BQ25756Error bq25756SetPrechargeCurrent(const BQ25756Device* const dev,
 	return bq25756WriteByte(dev, BQ25756_REG_IPRECHG, code);
 }
 
-BQ25756Error bq25756SetTerminationCurrent(const BQ25756Device* const dev,
+BQ25756Error bq25756SetTerminationCurrent(const BQ25756* const dev,
                                           const uint32_t             ma)
 {
 	const BQ25756Error ready = bq25756CheckReady(dev);
@@ -219,7 +219,7 @@ BQ25756Error bq25756SetTerminationCurrent(const BQ25756Device* const dev,
 	return bq25756WriteByte(dev, BQ25756_REG_ITERM, code);
 }
 
-BQ25756Error bq25756SetPrechargeVoltage(const BQ25756Device* const dev,
+BQ25756Error bq25756SetPrechargeVoltage(const BQ25756* const dev,
                                         const uint32_t             mv)
 {
 	const BQ25756Error ready = bq25756CheckReady(dev);
@@ -231,7 +231,7 @@ BQ25756Error bq25756SetPrechargeVoltage(const BQ25756Device* const dev,
 	return bq25756WriteU16BE(dev, BQ25756_REG_VBAT_PRECHG_MSB, code);
 }
 
-BQ25756Error bq25756SetChargeEnabled(const BQ25756Device* const dev,
+BQ25756Error bq25756SetChargeEnabled(const BQ25756* const dev,
                                      const bool                 enable)
 {
 	return bq25756ModifyByte(dev, BQ25756_REG_CHARGER_CTRL_1,
@@ -239,7 +239,7 @@ BQ25756Error bq25756SetChargeEnabled(const BQ25756Device* const dev,
 	                         enable ? BQ25756_CTRL1_EN_CHG_BIT : 0U);
 }
 
-BQ25756Error bq25756SetTerminationEnabled(const BQ25756Device* const dev,
+BQ25756Error bq25756SetTerminationEnabled(const BQ25756* const dev,
                                           const bool                 enable)
 {
 	return bq25756ModifyByte(dev, BQ25756_REG_CHARGER_CTRL_1,
@@ -249,7 +249,7 @@ BQ25756Error bq25756SetTerminationEnabled(const BQ25756Device* const dev,
 
 /* ── 3. Input / system configuration ──────────────────────────────────────── */
 
-BQ25756Error bq25756SetInputVoltageMin(const BQ25756Device* const dev,
+BQ25756Error bq25756SetInputVoltageMin(const BQ25756* const dev,
                                        const uint32_t             mv)
 {
 	return bq25756WriteScaled(dev, BQ25756_REG_VIN_DPM_MSB, mv,
@@ -257,7 +257,7 @@ BQ25756Error bq25756SetInputVoltageMin(const BQ25756Device* const dev,
 	                          BQ25756_VIN_DPM_LSB_MV);
 }
 
-BQ25756Error bq25756SetInputCurrentMax(const BQ25756Device* const dev,
+BQ25756Error bq25756SetInputCurrentMax(const BQ25756* const dev,
                                        const uint32_t             ma)
 {
 	return bq25756WriteScaled(dev, BQ25756_REG_IIN_DPM_MSB, ma,
@@ -265,7 +265,7 @@ BQ25756Error bq25756SetInputCurrentMax(const BQ25756Device* const dev,
 	                          BQ25756_IIN_DPM_LSB_MA);
 }
 
-BQ25756Error bq25756SetVbusOvp(const BQ25756Device* const dev,
+BQ25756Error bq25756SetVbusOvp(const BQ25756* const dev,
                                const uint32_t             mv)
 {
 	const BQ25756Error ready = bq25756CheckReady(dev);
@@ -277,7 +277,7 @@ BQ25756Error bq25756SetVbusOvp(const BQ25756Device* const dev,
 	return bq25756WriteU16BE(dev, BQ25756_REG_VBUS_OVP_MSB, code);
 }
 
-BQ25756Error bq25756SetVbatOvp(const BQ25756Device* const dev,
+BQ25756Error bq25756SetVbatOvp(const BQ25756* const dev,
                                const uint32_t             mv)
 {
 	const BQ25756Error ready = bq25756CheckReady(dev);
@@ -289,7 +289,7 @@ BQ25756Error bq25756SetVbatOvp(const BQ25756Device* const dev,
 	return bq25756WriteU16BE(dev, BQ25756_REG_VBAT_OVP_MSB, code);
 }
 
-BQ25756Error bq25756SetVsysMin(const BQ25756Device* const dev,
+BQ25756Error bq25756SetVsysMin(const BQ25756* const dev,
                                const uint32_t             mv)
 {
 	const BQ25756Error ready = bq25756CheckReady(dev);
@@ -301,7 +301,7 @@ BQ25756Error bq25756SetVsysMin(const BQ25756Device* const dev,
 	return bq25756WriteU16BE(dev, BQ25756_REG_VSYS_MIN_MSB, code);
 }
 
-BQ25756Error bq25756SetVsysReg(const BQ25756Device* const dev,
+BQ25756Error bq25756SetVsysReg(const BQ25756* const dev,
                                const uint32_t             mv)
 {
 	const BQ25756Error ready = bq25756CheckReady(dev);
@@ -315,7 +315,7 @@ BQ25756Error bq25756SetVsysReg(const BQ25756Device* const dev,
 
 /* ── 4. Power-path control ────────────────────────────────────────────────── */
 
-BQ25756Error bq25756SetHiZ(const BQ25756Device* const dev,
+BQ25756Error bq25756SetHiZ(const BQ25756* const dev,
                            const bool                 enable)
 {
 	return bq25756ModifyByte(dev, BQ25756_REG_CHARGER_CTRL_1,
@@ -323,7 +323,7 @@ BQ25756Error bq25756SetHiZ(const BQ25756Device* const dev,
 	                         enable ? BQ25756_CTRL1_EN_HIZ_BIT : 0U);
 }
 
-BQ25756Error bq25756SetOtgEnabled(const BQ25756Device* const dev,
+BQ25756Error bq25756SetOtgEnabled(const BQ25756* const dev,
                                   const bool                 enable)
 {
 	return bq25756ModifyByte(dev, BQ25756_REG_CHARGER_CTRL_1,
@@ -331,7 +331,7 @@ BQ25756Error bq25756SetOtgEnabled(const BQ25756Device* const dev,
 	                         enable ? BQ25756_CTRL1_EN_OTG_BIT : 0U);
 }
 
-BQ25756Error bq25756SetOtgVoltage(const BQ25756Device* const dev,
+BQ25756Error bq25756SetOtgVoltage(const BQ25756* const dev,
                                   const uint32_t             mv)
 {
 	const BQ25756Error ready = bq25756CheckReady(dev);
@@ -343,7 +343,7 @@ BQ25756Error bq25756SetOtgVoltage(const BQ25756Device* const dev,
 	return bq25756WriteU16BE(dev, BQ25756_REG_VOTG_REG_MSB, code);
 }
 
-BQ25756Error bq25756SetOtgCurrent(const BQ25756Device* const dev,
+BQ25756Error bq25756SetOtgCurrent(const BQ25756* const dev,
                                   const uint32_t             ma)
 {
 	const BQ25756Error ready = bq25756CheckReady(dev);
@@ -355,7 +355,7 @@ BQ25756Error bq25756SetOtgCurrent(const BQ25756Device* const dev,
 	return bq25756WriteByte(dev, BQ25756_REG_IOTG_LIMIT, code);
 }
 
-BQ25756Error bq25756EnterShipMode(const BQ25756Device* const dev)
+BQ25756Error bq25756EnterShipMode(const BQ25756* const dev)
 {
 	return bq25756ModifyByte(dev, BQ25756_REG_CHARGER_CTRL_3,
 	                         BQ25756_CTRL3_SHIPMODE_BIT,
@@ -364,7 +364,7 @@ BQ25756Error bq25756EnterShipMode(const BQ25756Device* const dev)
 
 /* ── 5. Safety: watchdog & timers ─────────────────────────────────────────── */
 
-BQ25756Error bq25756SetWatchdog(const BQ25756Device* const  dev,
+BQ25756Error bq25756SetWatchdog(const BQ25756* const  dev,
                                 const BQ25756WatchdogPeriod period)
 {
 	if ((uint32_t)period > (uint32_t)BQ25756_WATCHDOG_160_S)
@@ -374,14 +374,14 @@ BQ25756Error bq25756SetWatchdog(const BQ25756Device* const  dev,
 	                         (uint8_t)((uint8_t)period << BQ25756_TIMER_WD_PERIOD_SHIFT));
 }
 
-BQ25756Error bq25756KickWatchdog(const BQ25756Device* const dev)
+BQ25756Error bq25756KickWatchdog(const BQ25756* const dev)
 {
 	return bq25756ModifyByte(dev, BQ25756_REG_TIMER_CTRL,
 	                         BQ25756_TIMER_WD_RESET_BIT,
 	                         BQ25756_TIMER_WD_RESET_BIT);
 }
 
-BQ25756Error bq25756SetSafetyTimerEnabled(const BQ25756Device* const dev,
+BQ25756Error bq25756SetSafetyTimerEnabled(const BQ25756* const dev,
                                           const bool                 enable)
 {
 	return bq25756ModifyByte(dev, BQ25756_REG_TIMER_CTRL,
@@ -389,7 +389,7 @@ BQ25756Error bq25756SetSafetyTimerEnabled(const BQ25756Device* const dev,
 	                         enable ? BQ25756_TIMER_EN_SAFETY_BIT : 0U);
 }
 
-BQ25756Error bq25756SetSafetyTimer(const BQ25756Device* const dev,
+BQ25756Error bq25756SetSafetyTimer(const BQ25756* const dev,
                                    const BQ25756SafetyTimer   period)
 {
 	if ((uint32_t)period > (uint32_t)BQ25756_SAFETY_TIMER_20_H)
@@ -401,7 +401,7 @@ BQ25756Error bq25756SetSafetyTimer(const BQ25756Device* const dev,
 
 /* ── 6. Status / fault decode ─────────────────────────────────────────────── */
 
-BQ25756Error bq25756GetStatus(const BQ25756Device* const dev,
+BQ25756Error bq25756GetStatus(const BQ25756* const dev,
                               BQ25756Status* const       out)
 {
 	if (out == NULL)
@@ -436,7 +436,7 @@ BQ25756Error bq25756GetStatus(const BQ25756Device* const dev,
 	return BQ25756_ERROR_OK;
 }
 
-BQ25756Error bq25756GetFaults(const BQ25756Device* const dev,
+BQ25756Error bq25756GetFaults(const BQ25756* const dev,
                               BQ25756Faults* const       out)
 {
 	if (out == NULL)
@@ -476,7 +476,7 @@ BQ25756Error bq25756GetFaults(const BQ25756Device* const dev,
 	return BQ25756_ERROR_OK;
 }
 
-BQ25756Error bq25756ClearFaultFlags(const BQ25756Device* const dev)
+BQ25756Error bq25756ClearFaultFlags(const BQ25756* const dev)
 {
 	const BQ25756Error ready = bq25756CheckReady(dev);
 	if (ready != BQ25756_ERROR_OK)
@@ -487,7 +487,7 @@ BQ25756Error bq25756ClearFaultFlags(const BQ25756Device* const dev)
 
 /* ── 7. ADC ───────────────────────────────────────────────────────────────── */
 
-BQ25756Error bq25756SetAdcEnabled(const BQ25756Device* const dev,
+BQ25756Error bq25756SetAdcEnabled(const BQ25756* const dev,
                                   const bool                 enable)
 {
 	return bq25756ModifyByte(dev, BQ25756_REG_ADC_CTRL,
@@ -495,7 +495,7 @@ BQ25756Error bq25756SetAdcEnabled(const BQ25756Device* const dev,
 	                         enable ? BQ25756_ADC_CTRL_EN_BIT : 0U);
 }
 
-BQ25756Error bq25756SetAdcMode(const BQ25756Device* const dev,
+BQ25756Error bq25756SetAdcMode(const BQ25756* const dev,
                                const BQ25756AdcMode       mode)
 {
 	return bq25756ModifyByte(dev, BQ25756_REG_ADC_CTRL,
@@ -503,7 +503,7 @@ BQ25756Error bq25756SetAdcMode(const BQ25756Device* const dev,
 	                         (mode == BQ25756_ADC_MODE_ONE_SHOT) ? BQ25756_ADC_CTRL_RATE_BIT : 0U);
 }
 
-BQ25756Error bq25756SetAdcResolution(BQ25756Device* const       dev,
+BQ25756Error bq25756SetAdcResolution(BQ25756* const       dev,
                                      const BQ25756AdcResolution res)
 {
 	const BQ25756Error ready = bq25756CheckReady(dev);
@@ -522,7 +522,7 @@ BQ25756Error bq25756SetAdcResolution(BQ25756Device* const       dev,
 	return BQ25756_ERROR_OK;
 }
 
-BQ25756Error bq25756TriggerAdcOneShot(const BQ25756Device* const dev,
+BQ25756Error bq25756TriggerAdcOneShot(const BQ25756* const dev,
                                       const uint32_t             timeout_ms)
 {
 	const BQ25756Error ready = bq25756CheckReady(dev);
@@ -543,7 +543,7 @@ BQ25756Error bq25756TriggerAdcOneShot(const BQ25756Device* const dev,
 	return BQ25756_ERROR_OK;
 }
 
-BQ25756Error bq25756ReadAdc(const BQ25756Device* const dev,
+BQ25756Error bq25756ReadAdc(const BQ25756* const dev,
                             const BQ25756AdcChannel    channel,
                             int32_t* const             out_value)
 {
@@ -606,7 +606,7 @@ BQ25756Error bq25756ReadAdc(const BQ25756Device* const dev,
 
 /* ── 8. JEITA / NTC ───────────────────────────────────────────────────────── */
 
-BQ25756Error bq25756SetNtcEnabled(const BQ25756Device* const dev,
+BQ25756Error bq25756SetNtcEnabled(const BQ25756* const dev,
                                   const bool                 enable)
 {
 	return bq25756ModifyByte(dev, BQ25756_REG_NTC_CTRL_0,
@@ -614,7 +614,7 @@ BQ25756Error bq25756SetNtcEnabled(const BQ25756Device* const dev,
 	                         enable ? BQ25756_NTC0_EN_BIT : 0U);
 }
 
-BQ25756Error bq25756SetJeitaCoolAction(const BQ25756Device* const dev,
+BQ25756Error bq25756SetJeitaCoolAction(const BQ25756* const dev,
                                        const BQ25756JeitaVcool    action)
 {
 	if ((uint32_t)action > (uint32_t)BQ25756_JEITA_VCOOL_SUSPENDED)
@@ -624,7 +624,7 @@ BQ25756Error bq25756SetJeitaCoolAction(const BQ25756Device* const dev,
 	                         (uint8_t)((uint8_t)action << BQ25756_NTC0_JEITA_VSET_SHIFT));
 }
 
-BQ25756Error bq25756SetJeitaWarmAction(const BQ25756Device* const dev,
+BQ25756Error bq25756SetJeitaWarmAction(const BQ25756* const dev,
                                        const BQ25756JeitaIwarm    action)
 {
 	if ((uint32_t)action > (uint32_t)BQ25756_JEITA_IWARM_SUSPENDED)
@@ -636,7 +636,7 @@ BQ25756Error bq25756SetJeitaWarmAction(const BQ25756Device* const dev,
 
 /* ── 9. Interrupt-mask programming ────────────────────────────────────────── */
 
-BQ25756Error bq25756MaskAllInterrupts(const BQ25756Device* const dev)
+BQ25756Error bq25756MaskAllInterrupts(const BQ25756* const dev)
 {
 	const BQ25756Error ready = bq25756CheckReady(dev);
 	if (ready != BQ25756_ERROR_OK)
@@ -650,7 +650,7 @@ BQ25756Error bq25756MaskAllInterrupts(const BQ25756Device* const dev)
 	return bq25756WriteRegisters(dev, BQ25756_REG_CHARGER_MASK_1, all_masked, 4U);
 }
 
-BQ25756Error bq25756SetFaultMask(const BQ25756Device* const dev,
+BQ25756Error bq25756SetFaultMask(const BQ25756* const dev,
                                  const uint32_t             fault_bits)
 {
 	const BQ25756Error ready = bq25756CheckReady(dev);
@@ -686,7 +686,7 @@ BQ25756Error bq25756SetFaultMask(const BQ25756Device* const dev,
 
 /* ── Internal helpers ─────────────────────────────────────────────────────── */
 
-static BQ25756Error bq25756CheckReady(const BQ25756Device* const dev)
+static BQ25756Error bq25756CheckReady(const BQ25756* const dev)
 {
 	if (dev == NULL)
 		return BQ25756_ERROR_INVALID_PARAM;
@@ -695,7 +695,7 @@ static BQ25756Error bq25756CheckReady(const BQ25756Device* const dev)
 	return BQ25756_ERROR_OK;
 }
 
-static BQ25756Error bq25756ReadRegisters(const BQ25756Device* const dev,
+static BQ25756Error bq25756ReadRegisters(const BQ25756* const dev,
                                          const uint8_t              reg,
                                          uint8_t* const             data,
                                          const uint8_t              length)
@@ -705,7 +705,7 @@ static BQ25756Error bq25756ReadRegisters(const BQ25756Device* const dev,
 	return BQ25756_ERROR_OK;
 }
 
-static BQ25756Error bq25756WriteRegisters(const BQ25756Device* const dev,
+static BQ25756Error bq25756WriteRegisters(const BQ25756* const dev,
                                           const uint8_t              reg,
                                           const uint8_t* const       data,
                                           const uint8_t              length)
@@ -715,21 +715,21 @@ static BQ25756Error bq25756WriteRegisters(const BQ25756Device* const dev,
 	return BQ25756_ERROR_OK;
 }
 
-static BQ25756Error bq25756ReadByte(const BQ25756Device* const dev,
+static BQ25756Error bq25756ReadByte(const BQ25756* const dev,
                                     const uint8_t              reg,
                                     uint8_t* const             value)
 {
 	return bq25756ReadRegisters(dev, reg, value, 1U);
 }
 
-static BQ25756Error bq25756WriteByte(const BQ25756Device* const dev,
+static BQ25756Error bq25756WriteByte(const BQ25756* const dev,
                                      const uint8_t              reg,
                                      const uint8_t              value)
 {
 	return bq25756WriteRegisters(dev, reg, &value, 1U);
 }
 
-static BQ25756Error bq25756ModifyByte(const BQ25756Device* const dev,
+static BQ25756Error bq25756ModifyByte(const BQ25756* const dev,
                                       const uint8_t              reg,
                                       const uint8_t              mask,
                                       const uint8_t              value)
@@ -746,7 +746,7 @@ static BQ25756Error bq25756ModifyByte(const BQ25756Device* const dev,
 	return bq25756WriteByte(dev, reg, updated);
 }
 
-static BQ25756Error bq25756WriteU16BE(const BQ25756Device* const dev,
+static BQ25756Error bq25756WriteU16BE(const BQ25756* const dev,
                                       const uint8_t              msb_reg,
                                       const uint16_t             value)
 {
@@ -757,7 +757,7 @@ static BQ25756Error bq25756WriteU16BE(const BQ25756Device* const dev,
 	return bq25756WriteRegisters(dev, msb_reg, bytes, 2U);
 }
 
-static BQ25756Error bq25756ReadU16BE(const BQ25756Device* const dev,
+static BQ25756Error bq25756ReadU16BE(const BQ25756* const dev,
                                      const uint8_t              msb_reg,
                                      uint16_t* const            value)
 {
@@ -769,7 +769,7 @@ static BQ25756Error bq25756ReadU16BE(const BQ25756Device* const dev,
 	return BQ25756_ERROR_OK;
 }
 
-static BQ25756Error bq25756WriteScaled(const BQ25756Device* const dev,
+static BQ25756Error bq25756WriteScaled(const BQ25756* const dev,
                                        const uint8_t              msb_reg,
                                        const uint32_t             real_value,
                                        const uint32_t             real_min,
